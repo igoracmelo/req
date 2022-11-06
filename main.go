@@ -10,41 +10,6 @@ import (
 	"github.com/alecthomas/chroma/quick"
 )
 
-type Color struct {
-	Disable bool
-}
-
-func (c *Color) surround(text, color string) string {
-	if c.Disable {
-		return text
-	}
-	return fmt.Sprintf("%s%s%s", color, text, "\033[0m")
-}
-
-func (c *Color) Red(text string) string {
-	return c.surround(text, "\033[0;31m")
-}
-
-func (c *Color) Yellow(text string) string {
-	return c.surround(text, "\033[0;33m")
-}
-
-func (c *Color) Blue(text string) string {
-	return c.surround(text, "\033[0;34m")
-}
-
-func (c *Color) BBlue(text string) string {
-	return c.surround(text, "\033[1;34m")
-}
-
-func (c *Color) Cyan(text string) string {
-	return c.surround(text, "\033[0;36m")
-}
-
-func (c *Color) Gray(text string) string {
-	return c.surround(text, "\033[0;37m")
-}
-
 var disableColors = false
 var showReqHeaders = false // TODO:
 var showRespHeaders = true
@@ -53,9 +18,10 @@ var showBody = true
 var showBinaryBody = false
 
 func main() {
-	// TODO: check
-	method := strings.ToUpper(os.Args[1])
-	url := os.Args[2]
+	options, err := parseOptions(os.Args)
+	if err != nil {
+		panic(err)
+	}
 
 	client := &http.Client{}
 
@@ -65,24 +31,25 @@ func main() {
 		color.Disable = true
 	}
 
-	req, err := http.NewRequest(method, url, nil)
+	req, err := http.NewRequest(options.Method, options.Url, nil) // TODO: body
 	if err != nil {
 		panic(err)
 	}
 
-	for _, arg := range os.Args[3:] {
-		// fmt.Println(arg)
-		if strings.Contains(arg, ":") {
-			chunks := strings.Split(arg, ":")
-			req.Header.Set(chunks[0], chunks[1])
-		} else if strings.Contains(arg, "==") {
-			query := req.URL.Query()
-			// req.URL.
-			chunks := strings.Split(arg, "==")
-			query.Set(chunks[0], chunks[1])
-			req.URL.RawQuery = query.Encode()
-		}
+	for key, value := range options.Headers {
+		req.Header.Set(key, value)
 	}
+
+	query := req.URL.Query()
+
+	for key, value := range options.Query {
+		query.Set(key, value)
+	}
+
+	req.URL.RawQuery = query.Encode()
+
+	// fmt.Println(req.URL.String())
+	// fmt.Println()
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -106,27 +73,92 @@ func main() {
 	if readBody {
 		body, err = io.ReadAll(resp.Body)
 		if err != nil {
-			panic(err)
+			fmt.Println("Failed to read response body: ", err)
+			os.Exit(1)
 		}
 	}
 
 	fmt.Println()
 
 	if showBody {
-		bodyIsText := strings.HasPrefix(resp.Header.Get("Content-Type"), "text")
+		contentType := resp.Header.Get("Content-Type")
 
-		if strings.HasPrefix(resp.Header.Get("Content-Type"), "text/html") {
+		if contentTypeIsCode(contentType) {
 			err := quick.Highlight(os.Stdout, string(body), "go", "terminal256", "monokai")
 			if err != nil {
 				panic(err)
 			}
-			return
-		}
-
-		if bodyIsText || showBinaryBody {
+		} else if showBinaryBody || !contentTypeIsBinary(contentType) {
 			fmt.Println(string(body))
 		} else {
 			fmt.Println(color.Gray("[ Binary data ]"))
 		}
 	}
+
+	fmt.Println()
+}
+
+type ReqOptions struct {
+	Url     string
+	Method  string
+	Body    string
+	Headers map[string]string
+	Query   map[string]string
+}
+
+func parseOptions(args []string) (*ReqOptions, error) {
+	if len(args) < 3 {
+		return nil, fmt.Errorf("Not enough arguments")
+	}
+
+	reqArgs := &ReqOptions{
+		Method:  strings.ToUpper(args[1]),
+		Url:     args[2],
+		Headers: map[string]string{},
+		Query:   map[string]string{},
+	}
+
+	for _, arg := range args {
+		if strings.Contains(arg, ":") {
+			chunks := strings.Split(arg, ":")
+			reqArgs.Headers[chunks[0]] = chunks[1]
+
+		} else if strings.Contains(arg, "==") {
+			chunks := strings.Split(arg, "==")
+			reqArgs.Query[chunks[0]] = chunks[1]
+		}
+	}
+
+	return reqArgs, nil
+}
+
+func contentTypeIsCode(contentType string) bool {
+	prefixes := []string{
+		"text/html",
+		"text/xml",
+		"application/json",
+	}
+
+	for _, prefix := range prefixes {
+		if strings.HasPrefix(contentType, prefix) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func contentTypeIsBinary(contentType string) bool {
+	prefixes := []string{
+		"text/",
+		"application/json",
+	}
+
+	for _, prefix := range prefixes {
+		if strings.HasPrefix(contentType, prefix) {
+			return false
+		}
+	}
+
+	return true
 }
