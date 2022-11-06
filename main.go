@@ -11,7 +11,7 @@ import (
 )
 
 var disableColors = false
-var showReqHeaders = false // TODO:
+var showReqHeaders = true
 var showRespHeaders = true
 var readBody = true
 var showBody = true
@@ -48,8 +48,12 @@ func main() {
 
 	req.URL.RawQuery = query.Encode()
 
-	// fmt.Println(req.URL.String())
-	// fmt.Println()
+	fmt.Println(color.Green(options.Method), color.Gray(req.URL.Path), color.Blue(req.Proto))
+
+	if showReqHeaders {
+		printHeaders(req.Header, &color)
+		fmt.Println()
+	}
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -118,25 +122,28 @@ func parseOptions(args []string) (*ReqOptions, error) {
 		return nil, fmt.Errorf("Not enough arguments")
 	}
 
-	reqArgs := &ReqOptions{
+	options := &ReqOptions{
 		Method:  strings.ToUpper(args[1]),
 		Url:     args[2],
 		Headers: map[string]string{},
 		Query:   map[string]string{},
 	}
 
-	for _, arg := range args {
+	options.Headers["Accept"] = "*/*"
+	options.Headers["User-Agent"] = "req"
+
+	for _, arg := range args[3:] {
 		if strings.Contains(arg, ":") {
 			chunks := strings.Split(arg, ":")
-			reqArgs.Headers[chunks[0]] = chunks[1]
+			options.Headers[chunks[0]] = chunks[1]
 
 		} else if strings.Contains(arg, "==") {
 			chunks := strings.Split(arg, "==")
-			reqArgs.Query[chunks[0]] = chunks[1]
+			options.Query[chunks[0]] = chunks[1]
 		}
 	}
 
-	return reqArgs, nil
+	return options, nil
 }
 
 func contentTypeIsCode(contentType string) bool {
