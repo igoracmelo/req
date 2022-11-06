@@ -31,7 +31,7 @@ func main() {
 		color.Disable = true
 	}
 
-	req, err := http.NewRequest(options.Method, options.Url, nil) // TODO: body
+	req, err := http.NewRequest(options.Method, options.Url, options.Body)
 	if err != nil {
 		panic(err)
 	}
@@ -68,39 +68,50 @@ func main() {
 		printHeaders(resp.Header, &color)
 	}
 
-	body := []byte{}
+	contentType := resp.Header.Get("Content-Type")
 
 	if readBody {
-		body, err = io.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			fmt.Println("Failed to read response body: ", err)
 			os.Exit(1)
 		}
-	}
 
-	fmt.Println()
-
-	if showBody {
-		contentType := resp.Header.Get("Content-Type")
-
-		if contentTypeIsCode(contentType) {
-			err := quick.Highlight(os.Stdout, string(body), "go", "terminal256", "monokai")
-			if err != nil {
-				panic(err)
-			}
-		} else if showBinaryBody || !contentTypeIsBinary(contentType) {
-			fmt.Println(string(body))
-		} else {
-			fmt.Println(color.Gray("[ Binary data ]"))
+		if showBody {
+			fmt.Println()
+			printRespBody(body, contentType, &color)
 		}
 	}
 
 	fmt.Println()
 }
 
+func printRespBody(body []byte, contentType string, color *Color) error {
+	if contentTypeIsCode(contentType) {
+		err := quick.Highlight(os.Stdout, string(body), "go", "terminal256", "monokai")
+		return err
+	}
+
+	isBinary := contentTypeIsBinary(contentType)
+
+	if isBinary && showBinaryBody {
+		fmt.Println(string(body))
+
+	} else if isBinary {
+		fmt.Println(color.Gray("[ Binary data ]"))
+
+	} else {
+		// plain text
+		fmt.Println(string(body))
+	}
+
+	return nil
+}
+
 func printHeaders(headers http.Header, color *Color) {
 	for name, values := range headers {
 		for _, value := range values {
+			// TODO: truncate on/off
 			if len(value) > 80 {
 				value = value[:80-3] + "..."
 			}
@@ -112,7 +123,7 @@ func printHeaders(headers http.Header, color *Color) {
 type ReqOptions struct {
 	Url     string
 	Method  string
-	Body    string
+	Body    io.Reader
 	Headers map[string]string
 	Query   map[string]string
 }
@@ -127,6 +138,7 @@ func parseOptions(args []string) (*ReqOptions, error) {
 		Url:     args[2],
 		Headers: map[string]string{},
 		Query:   map[string]string{},
+		Body:    strings.NewReader(""), // TODO:
 	}
 
 	options.Headers["Accept"] = "*/*"
