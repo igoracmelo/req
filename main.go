@@ -61,11 +61,7 @@ func main() {
 	fmt.Println(color.Cyan(resp.Proto), color.Yellow(resp.Status))
 
 	if showRespHeaders {
-		for name, values := range resp.Header {
-			for _, value := range values {
-				fmt.Printf("%s: %s\n", color.Blue(name), value)
-			}
-		}
+		printHeaders(resp.Header, &color)
 	}
 
 	body := []byte{}
@@ -96,6 +92,17 @@ func main() {
 	}
 
 	fmt.Println()
+}
+
+func printHeaders(headers http.Header, color *Color) {
+	for name, values := range headers {
+		for _, value := range values {
+			if len(value) > 80 {
+				value = value[:80-3] + "..."
+			}
+			fmt.Printf("%s: %s\n", color.Blue(name), value)
+		}
+	}
 }
 
 type ReqOptions struct {
