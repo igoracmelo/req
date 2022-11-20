@@ -82,4 +82,13 @@ func TestParseOptions(t *testing.T) {
 		assert.Equal(t, "GET", options.Method)
 		assert.Equal(t, "http://localhost:1234/", options.Url)
 	})
+
+	t.Run("should parse print options", func(t *testing.T) {
+		options, err := ParseOptions([]string{"./req", "get", "http://localhost:1234/", "-p=Hb"})
+		assert.NoError(t, err)
+		assert.True(t, options.ShowReqHead)
+		assert.False(t, options.ShowReqBody)
+		assert.False(t, options.ShowRespHead)
+		assert.True(t, options.ShowRespBody)
+	})
 }

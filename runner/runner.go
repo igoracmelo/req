@@ -51,13 +51,13 @@ func (req *ReqRunner) Run() error {
 		return err
 	}
 
+	defer response.Body.Close()
+
 	if req.options.ShowRespHead {
 		req.logger.Println()
 		req.logger.Printf("%s %s\n", response.Proto, response.Status)
 		req.PrintHeaders(response.Header)
 	}
-
-	defer response.Body.Close()
 
 	if req.options.ShowRespBody {
 		body, err := io.ReadAll(response.Body)
@@ -84,6 +84,7 @@ type Options struct {
 	Method       string
 	Url          string
 	ShowReqHead  bool
+	ShowReqBody  bool
 	ShowRespHead bool
 	ShowRespBody bool
 	EnableColors bool
@@ -100,9 +101,28 @@ func ParseOptions(args []string) (*Options, error) {
 
 		// defaults
 		ShowReqHead:  true,
+		ShowReqBody:  true,
 		ShowRespHead: true,
 		ShowRespBody: true,
 		EnableColors: true,
+	}
+
+	if len(args) > 3 {
+		for _, arg := range args {
+			if strings.HasPrefix(arg, "-") && strings.Contains(arg, "=") {
+				chunks := strings.Split(arg[1:], "=")
+				key := chunks[0]
+				value := chunks[1]
+
+				switch key {
+				case "p":
+					options.ShowReqHead = strings.Contains(value, "H")
+					options.ShowReqBody = strings.Contains(value, "B")
+					options.ShowRespHead = strings.Contains(value, "h")
+					options.ShowRespBody = strings.Contains(value, "b")
+				}
+			}
+		}
 	}
 
 	return options, nil
