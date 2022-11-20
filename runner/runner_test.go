@@ -60,7 +60,31 @@ func TestRun(t *testing.T) {
 		err := req.Run()
 		assert.NoError(t, err)
 
-		assert.Contains(t, out.String(), "Content-Type: text/plain")
+		outStr := out.String()
+		assert.Contains(t, outStr, "Content-Type: text/plain")
+	})
+
+	t.Run("should use custom request header", func(t *testing.T) {
+		server := httptest.NewServer(nil)
+		out := &strings.Builder{}
+		logger := log.New(out, "", 0)
+
+		req := New(server.Client(), logger, &Options{
+			Method:      "get",
+			Url:         server.URL,
+			ShowReqHead: true,
+			Headers: map[string]string{
+				"test":  "123",
+				"test2": "123 456",
+			},
+		})
+
+		err := req.Run()
+		assert.NoError(t, err)
+
+		outStr := out.String()
+		assert.Contains(t, outStr, "Test: 123")
+		assert.Contains(t, outStr, "Test2: 123 456")
 	})
 }
 
@@ -90,5 +114,12 @@ func TestParseOptions(t *testing.T) {
 		assert.False(t, options.ShowReqBody)
 		assert.False(t, options.ShowRespHead)
 		assert.True(t, options.ShowRespBody)
+	})
+
+	t.Run("should parse custom headers", func(t *testing.T) {
+		options, err := ParseOptions([]string{"./req", "get", "http://localhost:1234/", "If-None-Match:123", "Another:hello guys"})
+		assert.NoError(t, err)
+		assert.Equal(t, "123", options.Headers["If-None-Match"])
+		assert.Equal(t, "hello guys", options.Headers["Another"])
 	})
 }
