@@ -12,4 +12,4 @@ https://user-images.githubusercontent.com/85039990/202880997-8b157947-14ab-44bb-
 | httpie | 234 ms | `http get http://jsonplaceholder.typicode.com/posts/ -p=HBhb` |
 | req | 65 ms | `req get http://jsonplaceholder.typicode.com/posts/ -p=HBhb` |
 
-*httpie uses slightly different theme and also formats output besides coloring them, which may be the main reason why my program is faster...
+*httpie uses slightly different theme and also formats output, which is probably why it is "slower"
