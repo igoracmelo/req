@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/alecthomas/chroma/quick"
 	"github.com/igoracmelo/req/color"
 )
 
@@ -82,7 +83,12 @@ func (r *ReqRunner) Run() error {
 		}
 
 		r.logger.Println()
-		r.logger.Println(string(body))
+
+		if r.options.EnableColors {
+			quick.Highlight(r.logger.Writer(), string(body)+"\n", "go", "terminal16m", "monokai")
+		} else {
+			r.logger.Println(string(body))
+		}
 	}
 
 	return nil

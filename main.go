@@ -22,7 +22,7 @@ func run(args []string, logger *log.Logger) {
 
 	r := runner.New(&http.Client{}, logger, options)
 	err = r.Run()
-	_ = err
+	_ = err // FIXME:
 }
 
 func showUsageAndExit(logger *log.Logger) {
