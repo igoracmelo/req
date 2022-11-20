@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -26,6 +27,14 @@ func (req *ReqRunner) Run() error {
 	request, err := http.NewRequest(req.options.Method, req.options.Url, nil) // TODO: body
 	if err != nil {
 		return err
+	}
+
+	if request.URL.Path == "" {
+		u, err := url.Parse(req.options.Url + "/")
+		if err != nil {
+			return err
+		}
+		request.URL = u
 	}
 
 	request.Header.Set("Host", request.Host)
