@@ -23,14 +23,14 @@ func New(client *http.Client, logger *log.Logger, options *Options) *ReqRunner {
 	}
 }
 
-func (req *ReqRunner) Run() error {
-	request, err := http.NewRequest(req.options.Method, req.options.Url, nil) // TODO: body
+func (r *ReqRunner) Run() error {
+	request, err := http.NewRequest(r.options.Method, r.options.Url, nil) // TODO: body
 	if err != nil {
 		return err
 	}
 
 	if request.URL.Path == "" {
-		u, err := url.Parse(req.options.Url + "/")
+		u, err := url.Parse(r.options.Url + "/")
 		if err != nil {
 			return err
 		}
@@ -41,36 +41,36 @@ func (req *ReqRunner) Run() error {
 	request.Header.Set("User-Agent", "req")
 	request.Header.Set("Accept", "*/*")
 
-	for key, value := range req.options.Headers {
+	for key, value := range r.options.Headers {
 		request.Header.Set(key, value)
 	}
 
-	if req.options.ShowReqHead {
-		req.logger.Printf("%s %s %s\n", request.Method, request.URL.Path, request.Proto)
-		req.PrintHeaders(request.Header)
+	if r.options.ShowReqHead {
+		r.logger.Printf("%s %s %s\n", request.Method, request.URL.Path, request.Proto)
+		r.PrintHeaders(request.Header)
 	}
 
-	response, err := req.client.Do(request)
+	response, err := r.client.Do(request)
 	if err != nil {
 		return err
 	}
 
 	defer response.Body.Close()
 
-	if req.options.ShowRespHead {
-		req.logger.Println()
-		req.logger.Printf("%s %s\n", response.Proto, response.Status)
-		req.PrintHeaders(response.Header)
+	if r.options.ShowRespHead {
+		r.logger.Println()
+		r.logger.Printf("%s %s\n", response.Proto, response.Status)
+		r.PrintHeaders(response.Header)
 	}
 
-	if req.options.ShowRespBody {
+	if r.options.ShowRespBody {
 		body, err := io.ReadAll(response.Body)
 		if err != nil {
 			return err
 		}
 
-		req.logger.Println()
-		req.logger.Println(string(body))
+		r.logger.Println()
+		r.logger.Println(string(body))
 	}
 
 	return nil
