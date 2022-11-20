@@ -115,7 +115,7 @@ func ParseOptions(args []string) (*Options, error) {
 
 	// TODO: refactor
 	if len(args) > 3 {
-		for _, arg := range args {
+		for _, arg := range args[3:] {
 			if strings.HasPrefix(arg, "-") && strings.Contains(arg, "=") {
 				chunks := strings.Split(arg[1:], "=")
 				key := chunks[0]
