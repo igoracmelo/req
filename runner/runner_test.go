@@ -2,6 +2,7 @@ package runner
 
 import (
 	"log"
+	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -92,6 +93,31 @@ func TestRun(t *testing.T) {
 		assert.Contains(t, outStr, "Test: 123")
 		assert.Contains(t, outStr, "Test2: 123 456")
 	})
+
+	t.Run("should show response body", func(t *testing.T) {
+		json := `{ "id": 123, "name": "cool" }`
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.Write([]byte(json))
+		}))
+
+		out := &strings.Builder{}
+		logger := log.New(out, "", 0)
+
+		req := New(server.Client(), logger, &Options{
+			Method:       "put",
+			Url:          server.URL,
+			ShowRespBody: true,
+			EnableColors: false,
+		})
+
+		err := req.Run()
+		assert.NoError(t, err)
+
+		outStr := out.String()
+		assert.Contains(t, outStr, json)
+	})
+
 }
 
 func TestParseOptions(t *testing.T) {
