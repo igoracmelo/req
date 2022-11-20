@@ -41,6 +41,10 @@ func (req *ReqRunner) Run() error {
 	request.Header.Set("User-Agent", "req")
 	request.Header.Set("Accept", "*/*")
 
+	for key, value := range req.options.Headers {
+		request.Header.Set(key, value)
+	}
+
 	if req.options.ShowReqHead {
 		req.logger.Printf("%s %s %s\n", request.Method, request.URL.Path, request.Proto)
 		req.PrintHeaders(request.Header)
@@ -88,6 +92,7 @@ type Options struct {
 	ShowRespHead bool
 	ShowRespBody bool
 	EnableColors bool
+	Headers      map[string]string
 }
 
 func ParseOptions(args []string) (*Options, error) {
@@ -105,8 +110,10 @@ func ParseOptions(args []string) (*Options, error) {
 		ShowRespHead: true,
 		ShowRespBody: true,
 		EnableColors: true,
+		Headers:      map[string]string{},
 	}
 
+	// TODO: refactor
 	if len(args) > 3 {
 		for _, arg := range args {
 			if strings.HasPrefix(arg, "-") && strings.Contains(arg, "=") {
@@ -121,6 +128,11 @@ func ParseOptions(args []string) (*Options, error) {
 					options.ShowRespHead = strings.Contains(value, "h")
 					options.ShowRespBody = strings.Contains(value, "b")
 				}
+			} else if strings.Contains(arg, ":") {
+				chunks := strings.Split(arg, ":")
+				key := chunks[0]
+				value := chunks[1]
+				options.Headers[key] = value
 			}
 		}
 	}
