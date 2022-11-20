@@ -1,4 +1,4 @@
-package req
+package runner
 
 import (
 	"log"
@@ -16,7 +16,7 @@ func TestRun(t *testing.T) {
 		logger := log.New(out, "", 0)
 
 		req := New(server.Client(), logger, &Options{
-			Method: "GET",
+			Method: "post",
 			Url:    server.URL,
 		})
 
@@ -32,16 +32,18 @@ func TestRun(t *testing.T) {
 		logger := log.New(out, "", 0)
 
 		req := New(server.Client(), logger, &Options{
-			Method:         "GET",
-			Url:            server.URL,
-			ShowReqHeaders: true,
+			Method:      "get",
+			Url:         server.URL,
+			ShowReqHead: true,
 		})
 
 		err := req.Run()
 		assert.NoError(t, err)
 
-		assert.Contains(t, out.String(), "Host: 127.0.0.1:")
-		assert.Contains(t, out.String(), "User-Agent: req")
+		outStr := out.String()
+		assert.Contains(t, outStr, "Host: 127.0.0.1:")
+		assert.Contains(t, outStr, "User-Agent: req")
+		assert.Contains(t, outStr, "Accept: */*")
 	})
 
 	t.Run("should show response headers", func(t *testing.T) {
@@ -50,9 +52,9 @@ func TestRun(t *testing.T) {
 		logger := log.New(out, "", 0)
 
 		req := New(server.Client(), logger, &Options{
-			Method:          "GET",
-			Url:             server.URL,
-			ShowRespHeaders: true,
+			Method:       "get",
+			Url:          server.URL,
+			ShowRespHead: true,
 		})
 
 		err := req.Run()
