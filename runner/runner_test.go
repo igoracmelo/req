@@ -16,8 +16,9 @@ func TestRun(t *testing.T) {
 		logger := log.New(out, "", 0)
 
 		req := New(server.Client(), logger, &Options{
-			Method: "post",
-			Url:    server.URL,
+			Method:       "post",
+			Url:          server.URL,
+			EnableColors: false,
 		})
 
 		err := req.Run()
@@ -32,15 +33,17 @@ func TestRun(t *testing.T) {
 		logger := log.New(out, "", 0)
 
 		req := New(server.Client(), logger, &Options{
-			Method:      "get",
-			Url:         server.URL,
-			ShowReqHead: true,
+			Method:       "get",
+			Url:          server.URL,
+			ShowReqHead:  true,
+			EnableColors: false,
 		})
 
 		err := req.Run()
 		assert.NoError(t, err)
 
 		outStr := out.String()
+		assert.Contains(t, outStr, "GET / HTTP")
 		assert.Contains(t, outStr, "Host: 127.0.0.1:")
 		assert.Contains(t, outStr, "User-Agent: req")
 		assert.Contains(t, outStr, "Accept: */*")
@@ -55,6 +58,7 @@ func TestRun(t *testing.T) {
 			Method:       "get",
 			Url:          server.URL,
 			ShowRespHead: true,
+			EnableColors: false,
 		})
 
 		err := req.Run()
@@ -70,9 +74,10 @@ func TestRun(t *testing.T) {
 		logger := log.New(out, "", 0)
 
 		req := New(server.Client(), logger, &Options{
-			Method:      "get",
-			Url:         server.URL,
-			ShowReqHead: true,
+			Method:       "get",
+			Url:          server.URL,
+			ShowReqHead:  true,
+			EnableColors: false,
 			Headers: map[string]string{
 				"test":  "123",
 				"test2": "123 456",
@@ -83,6 +88,7 @@ func TestRun(t *testing.T) {
 		assert.NoError(t, err)
 
 		outStr := out.String()
+		assert.Contains(t, outStr, "GET / HTTP")
 		assert.Contains(t, outStr, "Test: 123")
 		assert.Contains(t, outStr, "Test2: 123 456")
 	})

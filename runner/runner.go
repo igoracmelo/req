@@ -7,12 +7,15 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/igoracmelo/req/color"
 )
 
 type ReqRunner struct {
 	client  *http.Client
 	logger  *log.Logger
 	options *Options
+	color   *color.Color
 }
 
 func New(client *http.Client, logger *log.Logger, options *Options) *ReqRunner {
@@ -20,10 +23,14 @@ func New(client *http.Client, logger *log.Logger, options *Options) *ReqRunner {
 		client:  client,
 		logger:  logger,
 		options: options,
+		color: &color.Color{
+			Disable: !options.EnableColors,
+		},
 	}
 }
 
 func (r *ReqRunner) Run() error {
+	r.options.Method = strings.ToUpper(r.options.Method)
 	request, err := http.NewRequest(r.options.Method, r.options.Url, nil) // TODO: body
 	if err != nil {
 		return err
