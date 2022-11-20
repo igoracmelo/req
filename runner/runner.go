@@ -53,7 +53,12 @@ func (r *ReqRunner) Run() error {
 	}
 
 	if r.options.ShowReqHead {
-		r.logger.Printf("%s %s %s\n", request.Method, request.URL.Path, request.Proto)
+		r.logger.Printf(
+			"%s %s %s\n",
+			r.color.Green(request.Method),
+			r.color.Cyan(request.URL.Path),
+			r.color.Blue(request.Proto),
+		)
 		r.PrintHeaders(request.Header)
 	}
 
@@ -66,7 +71,7 @@ func (r *ReqRunner) Run() error {
 
 	if r.options.ShowRespHead {
 		r.logger.Println()
-		r.logger.Printf("%s %s\n", response.Proto, response.Status)
+		r.logger.Printf("%s %s\n", response.Proto, r.color.Yellow(response.Status))
 		r.PrintHeaders(response.Header)
 	}
 
@@ -83,10 +88,10 @@ func (r *ReqRunner) Run() error {
 	return nil
 }
 
-func (req *ReqRunner) PrintHeaders(headers http.Header) {
+func (r *ReqRunner) PrintHeaders(headers http.Header) {
 	for key, values := range headers {
 		for _, value := range values {
-			req.logger.Printf("%s: %s\n", key, value)
+			r.logger.Printf("%s: %s\n", r.color.Cyan(key), value)
 		}
 	}
 }
