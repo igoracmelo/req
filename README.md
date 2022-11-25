@@ -1,5 +1,5 @@
 # req
-Like curl, but simpler. Like httpie, but faster.
+HTTP request tool inspired by cURL and HTTPie
 
 https://user-images.githubusercontent.com/85039990/202880997-8b157947-14ab-44bb-8659-b0d71dddaa31.mp4
 
