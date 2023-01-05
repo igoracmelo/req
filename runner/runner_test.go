@@ -12,35 +12,36 @@ import (
 func TestRun(t *testing.T) {
 	t.Run("shouldn't show anything when all outputs are disabled", func(t *testing.T) {
 		server := httptest.NewServer(nil)
-		out := &strings.Builder{}
+		stdout := &strings.Builder{}
+		stderr := &strings.Builder{}
 
-		req := New(server.Client(), nil, out, nil, &Options{
+		req := New(server.Client(), nil, stdout, stderr, &Options{
 			Method:       "post",
 			Url:          server.URL,
 			EnableColors: false,
 		})
 
-		err := req.Run()
-		assert.NoError(t, err)
-
-		assert.Empty(t, out.String())
+		req.Run()
+		assert.Empty(t, stdout.String())
+		assert.Empty(t, stderr.String())
 	})
 
 	t.Run("should show request headers", func(t *testing.T) {
 		server := httptest.NewServer(nil)
-		out := &strings.Builder{}
+		stdout := &strings.Builder{}
+		stderr := &strings.Builder{}
 
-		req := New(server.Client(), nil, out, nil, &Options{
+		req := New(server.Client(), nil, stdout, stderr, &Options{
 			Method:       "get",
 			Url:          server.URL,
 			ShowReqHead:  true,
 			EnableColors: false,
 		})
 
-		err := req.Run()
-		assert.NoError(t, err)
+		req.Run()
+		assert.Empty(t, stderr.String())
 
-		outStr := out.String()
+		outStr := stdout.String()
 		assert.Contains(t, outStr, "GET / HTTP")
 		assert.Contains(t, outStr, "Host: 127.0.0.1:")
 		assert.Contains(t, outStr, "User-Agent: req")
@@ -49,27 +50,29 @@ func TestRun(t *testing.T) {
 
 	t.Run("should show response headers", func(t *testing.T) {
 		server := httptest.NewServer(nil)
-		out := &strings.Builder{}
+		stdout := &strings.Builder{}
+		stderr := &strings.Builder{}
 
-		req := New(server.Client(), nil, out, nil, &Options{
+		req := New(server.Client(), nil, stdout, stderr, &Options{
 			Method:       "get",
 			Url:          server.URL,
 			ShowRespHead: true,
 			EnableColors: false,
 		})
 
-		err := req.Run()
-		assert.NoError(t, err)
+		req.Run()
+		assert.Empty(t, stderr.String())
 
-		outStr := out.String()
+		outStr := stdout.String()
 		assert.Contains(t, outStr, "Content-Type: text/plain")
 	})
 
 	t.Run("should use custom request header", func(t *testing.T) {
 		server := httptest.NewServer(nil)
-		out := &strings.Builder{}
+		stdout := &strings.Builder{}
+		stderr := &strings.Builder{}
 
-		req := New(server.Client(), nil, out, nil, &Options{
+		req := New(server.Client(), nil, stdout, stderr, &Options{
 			Method:       "get",
 			Url:          server.URL,
 			ShowReqHead:  true,
@@ -80,10 +83,10 @@ func TestRun(t *testing.T) {
 			},
 		})
 
-		err := req.Run()
-		assert.NoError(t, err)
+		req.Run()
+		assert.Empty(t, stderr.String())
 
-		outStr := out.String()
+		outStr := stdout.String()
 		assert.Contains(t, outStr, "GET / HTTP")
 		assert.Contains(t, outStr, "Test: 123")
 		assert.Contains(t, outStr, "Test2: 123 456")
@@ -96,19 +99,20 @@ func TestRun(t *testing.T) {
 			w.Write([]byte(json))
 		}))
 
-		out := &strings.Builder{}
+		stdout := &strings.Builder{}
+		stderr := &strings.Builder{}
 
-		req := New(server.Client(), nil, out, nil, &Options{
+		req := New(server.Client(), nil, stdout, stderr, &Options{
 			Method:       "put",
 			Url:          server.URL,
 			ShowRespBody: true,
 			EnableColors: false,
 		})
 
-		err := req.Run()
-		assert.NoError(t, err)
+		req.Run()
+		assert.Empty(t, stderr.String())
 
-		outStr := out.String()
+		outStr := stdout.String()
 		assert.Contains(t, outStr, json)
 	})
 

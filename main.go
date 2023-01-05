@@ -22,9 +22,5 @@ func run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer) {
 	}
 
 	r := runner.New(&http.Client{}, stdin, stdout, stderr, options)
-	err = r.Run()
-	if err != nil {
-		// TODO: error handling
-		panic(err)
-	}
+	r.Run()
 }

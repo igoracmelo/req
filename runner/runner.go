@@ -33,17 +33,19 @@ func New(client *http.Client, stdin io.Reader, stdout io.Writer, stderr io.Write
 	}
 }
 
-func (r *ReqRunner) Run() error {
+func (r *ReqRunner) Run() {
 	r.options.Method = strings.ToUpper(r.options.Method)
 	request, err := http.NewRequest(r.options.Method, r.options.Url, nil) // TODO: body
 	if err != nil {
-		return err
+		fmt.Fprintf(r.stderr, r.color.Error("\nFailed to parse request options. Error:\n%v\n"), err)
+		return
 	}
 
 	if request.URL.Path == "" {
 		u, err := url.Parse(r.options.Url + "/")
 		if err != nil {
-			return err
+			fmt.Fprintf(r.stderr, r.color.Error("\nFailed to parse request options. Error:\n%v\n"), err)
+			return
 		}
 		request.URL = u
 	}
@@ -69,7 +71,8 @@ func (r *ReqRunner) Run() error {
 
 	response, err := r.client.Do(request)
 	if err != nil {
-		return err
+		fmt.Fprintf(r.stderr, r.color.Error("\nFailed to make request. Error:\n%v\n"), err)
+		return
 	}
 
 	defer response.Body.Close()
@@ -83,7 +86,8 @@ func (r *ReqRunner) Run() error {
 	if r.options.ShowRespBody {
 		body, err := io.ReadAll(response.Body)
 		if err != nil {
-			return err
+			fmt.Fprintf(r.stderr, r.color.Error("\nFailed to read response body. Error:\n%v\n"), err)
+			return
 		}
 
 		fmt.Fprintln(r.stdout)
@@ -94,8 +98,6 @@ func (r *ReqRunner) Run() error {
 			fmt.Fprintln(r.stdout, string(body))
 		}
 	}
-
-	return nil
 }
 
 func (r *ReqRunner) PrintHeaders(headers http.Header) {

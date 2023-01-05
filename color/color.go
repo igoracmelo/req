@@ -17,6 +17,10 @@ func (c *Color) Red(text string) string {
 	return c.surround(text, "\033[0;31m")
 }
 
+func (c *Color) Error(text string) string {
+	return c.surround(text, "\033[0;31m")
+}
+
 func (c *Color) Green(text string) string {
 	return c.surround(text, "\033[0;32m")
 }
