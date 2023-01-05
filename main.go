@@ -1,7 +1,8 @@
 package main
 
 import (
-	"log"
+	"fmt"
+	"io"
 	"net/http"
 	"os"
 
@@ -9,23 +10,21 @@ import (
 )
 
 func main() {
-	logger := log.New(os.Stdout, "", 0)
-	run(os.Args, logger)
+	run(os.Args, os.Stdin, os.Stdout, os.Stderr)
 }
 
-func run(args []string, logger *log.Logger) {
+func run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer) {
 	options, err := runner.ParseOptions(args)
 
 	if err != nil {
-		showUsageAndExit(logger)
+		fmt.Fprintf(stderr, "usage: %s <get|post|etc> http://somesite.org/ [options]\n", os.Args[0])
+		os.Exit(1)
 	}
 
-	r := runner.New(&http.Client{}, logger, options)
+	r := runner.New(&http.Client{}, stdin, stdout, stderr, options)
 	err = r.Run()
-	_ = err // FIXME:
-}
-
-func showUsageAndExit(logger *log.Logger) {
-	logger.Printf("usage: %s <get|post|etc> http://somesite.org/ [options]\n", os.Args[0])
-	os.Exit(1)
+	if err != nil {
+		// TODO: error handling
+		panic(err)
+	}
 }

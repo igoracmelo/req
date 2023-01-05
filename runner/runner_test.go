@@ -1,7 +1,6 @@
 package runner
 
 import (
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -14,9 +13,8 @@ func TestRun(t *testing.T) {
 	t.Run("shouldn't show anything when all outputs are disabled", func(t *testing.T) {
 		server := httptest.NewServer(nil)
 		out := &strings.Builder{}
-		logger := log.New(out, "", 0)
 
-		req := New(server.Client(), logger, &Options{
+		req := New(server.Client(), nil, out, nil, &Options{
 			Method:       "post",
 			Url:          server.URL,
 			EnableColors: false,
@@ -31,9 +29,8 @@ func TestRun(t *testing.T) {
 	t.Run("should show request headers", func(t *testing.T) {
 		server := httptest.NewServer(nil)
 		out := &strings.Builder{}
-		logger := log.New(out, "", 0)
 
-		req := New(server.Client(), logger, &Options{
+		req := New(server.Client(), nil, out, nil, &Options{
 			Method:       "get",
 			Url:          server.URL,
 			ShowReqHead:  true,
@@ -53,9 +50,8 @@ func TestRun(t *testing.T) {
 	t.Run("should show response headers", func(t *testing.T) {
 		server := httptest.NewServer(nil)
 		out := &strings.Builder{}
-		logger := log.New(out, "", 0)
 
-		req := New(server.Client(), logger, &Options{
+		req := New(server.Client(), nil, out, nil, &Options{
 			Method:       "get",
 			Url:          server.URL,
 			ShowRespHead: true,
@@ -72,9 +68,8 @@ func TestRun(t *testing.T) {
 	t.Run("should use custom request header", func(t *testing.T) {
 		server := httptest.NewServer(nil)
 		out := &strings.Builder{}
-		logger := log.New(out, "", 0)
 
-		req := New(server.Client(), logger, &Options{
+		req := New(server.Client(), nil, out, nil, &Options{
 			Method:       "get",
 			Url:          server.URL,
 			ShowReqHead:  true,
@@ -102,9 +97,8 @@ func TestRun(t *testing.T) {
 		}))
 
 		out := &strings.Builder{}
-		logger := log.New(out, "", 0)
 
-		req := New(server.Client(), logger, &Options{
+		req := New(server.Client(), nil, out, nil, &Options{
 			Method:       "put",
 			Url:          server.URL,
 			ShowRespBody: true,
@@ -121,7 +115,7 @@ func TestRun(t *testing.T) {
 }
 
 func TestParseOptions(t *testing.T) {
-	t.Run("Wrong usage", func(t *testing.T) {
+	t.Run("Wrong usage should not parse", func(t *testing.T) {
 		_, err := ParseOptions([]string{})
 		assert.Error(t, err)
 
@@ -132,7 +126,7 @@ func TestParseOptions(t *testing.T) {
 		assert.Error(t, err)
 	})
 
-	t.Run("Correct usage", func(t *testing.T) {
+	t.Run("Correct usage should parse properly", func(t *testing.T) {
 		options, err := ParseOptions([]string{"./req", "get", "http://localhost:1234/"})
 		assert.NoError(t, err)
 		assert.Equal(t, "GET", options.Method)

@@ -3,7 +3,6 @@ package runner
 import (
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -14,15 +13,19 @@ import (
 
 type ReqRunner struct {
 	client  *http.Client
-	logger  *log.Logger
+	stdin   io.Reader
+	stdout  io.Writer
+	stderr  io.Writer
 	options *Options
 	color   *color.Color
 }
 
-func New(client *http.Client, logger *log.Logger, options *Options) *ReqRunner {
+func New(client *http.Client, stdin io.Reader, stdout io.Writer, stderr io.Writer, options *Options) *ReqRunner {
 	return &ReqRunner{
 		client:  client,
-		logger:  logger,
+		stdin:   stdin,
+		stdout:  stdout,
+		stderr:  stderr,
 		options: options,
 		color: &color.Color{
 			Disable: !options.EnableColors,
@@ -54,7 +57,8 @@ func (r *ReqRunner) Run() error {
 	}
 
 	if r.options.ShowReqHead {
-		r.logger.Printf(
+		fmt.Fprintf(
+			r.stdout,
 			"%s %s %s\n",
 			r.color.Green(request.Method),
 			r.color.Cyan(request.URL.Path),
@@ -71,8 +75,8 @@ func (r *ReqRunner) Run() error {
 	defer response.Body.Close()
 
 	if r.options.ShowRespHead {
-		r.logger.Println()
-		r.logger.Printf("%s %s\n", response.Proto, r.color.Yellow(response.Status))
+		fmt.Fprintln(r.stdout)
+		fmt.Fprintf(r.stdout, "%s %s\n", response.Proto, r.color.Yellow(response.Status))
 		r.PrintHeaders(response.Header)
 	}
 
@@ -82,12 +86,12 @@ func (r *ReqRunner) Run() error {
 			return err
 		}
 
-		r.logger.Println()
+		fmt.Fprintln(r.stdout)
 
 		if r.options.EnableColors {
-			quick.Highlight(r.logger.Writer(), string(body)+"\n", "go", "terminal16m", "monokai")
+			quick.Highlight(r.stdout, string(body)+"\n", "go", "terminal16m", "monokai")
 		} else {
-			r.logger.Println(string(body))
+			fmt.Fprintln(r.stdout, string(body))
 		}
 	}
 
@@ -97,7 +101,7 @@ func (r *ReqRunner) Run() error {
 func (r *ReqRunner) PrintHeaders(headers http.Header) {
 	for key, values := range headers {
 		for _, value := range values {
-			r.logger.Printf("%s: %s\n", r.color.Cyan(key), value)
+			fmt.Fprintf(r.stdout, "%s: %s\n", r.color.Cyan(key), value)
 		}
 	}
 }
