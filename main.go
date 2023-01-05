@@ -22,5 +22,9 @@ func run(args []string, stdin io.Reader, stdout io.Writer, stderr io.Writer) {
 	}
 
 	r := runner.New(&http.Client{}, stdin, stdout, stderr, options)
-	r.Run()
+	ok := r.Run()
+
+	if !ok {
+		os.Exit(1)
+	}
 }

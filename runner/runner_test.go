@@ -21,7 +21,9 @@ func TestRun(t *testing.T) {
 			EnableColors: false,
 		})
 
-		req.Run()
+		ok := req.Run()
+		assert.True(t, ok)
+
 		assert.Empty(t, stdout.String())
 		assert.Empty(t, stderr.String())
 	})
@@ -38,8 +40,8 @@ func TestRun(t *testing.T) {
 			EnableColors: false,
 		})
 
-		req.Run()
-		assert.Empty(t, stderr.String())
+		ok := req.Run()
+		assert.True(t, ok)
 
 		outStr := stdout.String()
 		assert.Contains(t, outStr, "GET / HTTP")
@@ -60,8 +62,8 @@ func TestRun(t *testing.T) {
 			EnableColors: false,
 		})
 
-		req.Run()
-		assert.Empty(t, stderr.String())
+		ok := req.Run()
+		assert.True(t, ok)
 
 		outStr := stdout.String()
 		assert.Contains(t, outStr, "Content-Type: text/plain")
@@ -83,8 +85,8 @@ func TestRun(t *testing.T) {
 			},
 		})
 
-		req.Run()
-		assert.Empty(t, stderr.String())
+		ok := req.Run()
+		assert.True(t, ok)
 
 		outStr := stdout.String()
 		assert.Contains(t, outStr, "GET / HTTP")
@@ -109,8 +111,8 @@ func TestRun(t *testing.T) {
 			EnableColors: false,
 		})
 
-		req.Run()
-		assert.Empty(t, stderr.String())
+		ok := req.Run()
+		assert.True(t, ok)
 
 		outStr := stdout.String()
 		assert.Contains(t, outStr, json)
